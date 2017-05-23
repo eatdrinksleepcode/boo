@@ -1,4 +1,3 @@
-#category FailsOnMono
 """
 100
 100

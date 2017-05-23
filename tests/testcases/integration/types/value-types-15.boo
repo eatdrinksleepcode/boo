@@ -1,4 +1,4 @@
-#category FailsOnMono
+#category FailsOnMono4
 """
 Value: 5
 Value: 10

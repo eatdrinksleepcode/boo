@@ -1,4 +1,4 @@
-#category FailsOnMono
+#category FailsOnMono4
 
 def stackTrace(code as callable()):
 	try:

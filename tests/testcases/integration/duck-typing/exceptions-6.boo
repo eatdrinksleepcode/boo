@@ -1,4 +1,4 @@
-#category FailsOnMono
+#category FailsOnMono4
 
 class Foo:
 	bar[i]:
