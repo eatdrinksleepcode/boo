@@ -1,4 +1,3 @@
-#category FailsOnMono
 """
 System.String
 """
