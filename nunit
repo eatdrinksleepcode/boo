@@ -3,10 +3,12 @@
 set -e
 
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+echo "SCRIPT_DIR = ${SCRIPT_DIR}"
 source ${SCRIPT_DIR}/build-tools/.config-build
+echo "SCRIPT_DIR = ${SCRIPT_DIR}"
 
 pushd tests
 # Replace the nunit framework dll with the downloaded version
-cp -f "${TOOLS_DIR}/NUnit-${NUNIT_VERSION}/bin/nunit.framework.dll" build/.
+#cp -f "${TOOLS_DIR}/NUnit-${NUNIT_VERSION}/bin/nunit.framework.dll" build/.
 cd build
-PEVERIFY=false ${MONO_PATH} --runtime=v4.0 "${TOOLS_DIR}/NUnit-${NUNIT_VERSION}/bin/nunit-console.exe" -framework=4.5 -stoponerror -nologo -timeout=10000 -noresult -output=stdout.txt -domain=none -exclude=FailsOnMono,FailsOnMono4 *.Tests.dll
+PEVERIFY=false ${MONO_PATH} --runtime=v4.0 "${SCRIPT_DIR}/../lib/nunit-consolerunner-3.7.0/tools/nunit3-console.exe" -stoponerror --noheader -timeout=10000 -noresult -output=stdout.txt -domain=none --where "cat != FailsOnMono && cat != FailsOnMono4" *.Tests.dll

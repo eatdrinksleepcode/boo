@@ -5,6 +5,7 @@
 	<include buildfile="../build.properties" if="${file::exists('../build.properties')}" /> 
 	
 	<property name="test-bin-dir" value="../build" overwrite="false" />
+	<property name="nunit.framework.dll" value="${path::get-full-path('../lib/nunit-3.8.1/lib/net45/nunit.framework.dll')}" overwrite="true" />
 	
 	<target name="run-vs-bin" depends="set-test-boo-bin,run" />
 
