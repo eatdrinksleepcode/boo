@@ -329,7 +329,7 @@ def WriteTestCases(writer as TextWriter, baseDir as string):
 		{
 			RunCompilerTestCase(@"${NormalizePath(Path.GetFileName(fname))}");
 		}
-		""")
+""")
 	print "{0,5} {1,7}  {2}" % (count, ignored, baseDir)
 	
 def CategoryAttributeFor(testFile as string):
