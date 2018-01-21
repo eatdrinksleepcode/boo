@@ -29,6 +29,7 @@
 using Boo.Lang.Compiler.Ast;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using Boo.Lang.Compiler.TypeSystem.Core;
 
 namespace Boo.Lang.Compiler.TypeSystem.Generics
@@ -311,6 +312,24 @@ namespace Boo.Lang.Compiler.TypeSystem.Generics
 			return null;
 		}
 
+	    public static int GetTypeConcreteness(IType type)
+	    {
+            if (type.IsByRef || type.IsArray)
+                return GetTypeConcreteness(type.ElementType);
+
+            if (type is IGenericParameter)
+                return 0;
+
+	        if (type.ConstructedInfo != null)
+	        {
+	            var result = 0;
+                foreach (IType typeArg in type.ConstructedInfo.GenericArguments)
+                    result += GetTypeConcreteness(typeArg);
+	            return result;
+	        }
+	        return 1;
+	    }
+
 		/// <summary>
 		/// Determines the number of open generic parameters in the specified type.
 		/// </summary>
@@ -333,6 +352,32 @@ namespace Boo.Lang.Compiler.TypeSystem.Generics
 			if (type.ConstructedInfo != null)
 				foreach (IType typeArg in type.ConstructedInfo.GenericArguments)
 					generity += GetTypeGenerity(typeArg);
+
+			return generity;
+		}
+
+		/// <summary>
+		/// Determines the number of total generic parameters in the specified type.
+		/// </summary>
+		public static int GetTypeGenericDepth(IType type)
+		{
+			if (type.IsByRef || type.IsArray)
+				return GetTypeGenericDepth(type.ElementType);
+
+			if (type is IGenericParameter)
+				return 1;
+
+			// Generic parameters and generic arguments both contribute 
+			// to a types genrity. Note that a nested type can be both a generic definition 
+			// and a constructed type: Outer[of int].Inner[of T]
+			int generity = 0;
+
+			if (type.GenericInfo != null)
+				generity += type.GenericInfo.GenericParameters.Length;
+
+			if (type.ConstructedInfo != null)
+				foreach (IType typeArg in type.ConstructedInfo.GenericArguments)
+					generity += GetTypeGenericDepth(typeArg) + 1;
 
 			return generity;
 		}

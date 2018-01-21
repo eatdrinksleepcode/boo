@@ -42,15 +42,17 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 
 		private readonly Type _type;
 
-		IType[] _interfaces;
+	    private IType[] _interfaces;
 
-		IEntity[] _members;
+	    private IEntity[] _members;
 
-		int _typeDepth = -1;
+        private Dictionary<string, List<IEntity>> _cache;
 
-		string _primitiveName;
+        private int _typeDepth = -1;
 
-		string _fullName;
+        private string _primitiveName;
+
+        private string _fullName;
 
 		private string _name;
 
@@ -115,7 +117,7 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 		{
 			get
 			{
-				System.Type declaringType = _type.DeclaringType;
+				var declaringType = _type.DeclaringType;
 				return null != declaringType
 				       	? _provider.Map(declaringType)
 				       	: null;
@@ -124,8 +126,8 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 
 		public bool IsDefined(IType attributeType)
 		{
-			ExternalType type = attributeType as ExternalType;
-			if (null == type) return false;
+			var type = attributeType as ExternalType;
+            if (type == null) return false;
 			return MetadataUtil.IsAttributeDefined(_type, type.ActualType);
 		}
 
@@ -168,15 +170,18 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 		{
 			get { return _type.IsPointer; }
 		}
+		
+		public virtual bool IsVoid
+		{
+			get { return false; }
+		}
 
 		public virtual IType BaseType
 		{
 			get
 			{
-				Type baseType = _type.BaseType;
-				return null == baseType
-				       	? null
-				       	: _provider.Map(baseType);
+				var baseType = _type.BaseType;
+                return baseType == null ? null : _provider.Map(baseType);
 			}
 		}
 		
@@ -214,6 +219,16 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 				{
 					return !IsValueType;
 				}
+                if (other.ConstructedInfo != null && this.ConstructedInfo != null
+                    && ConstructedInfo.GenericDefinition == other.ConstructedInfo.GenericDefinition)
+                {
+                    for (int i = 0; i < ConstructedInfo.GenericArguments.Length; ++i)
+                    {
+                        if (!ConstructedInfo.GenericArguments[i].IsAssignableFrom(other.ConstructedInfo.GenericArguments[i]))
+                            return false;
+                    }
+                    return true;
+                }
 				return other.IsSubclassOf(this);
 			}
 			if (other == _provider.Map(Types.Void))
@@ -237,20 +252,26 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 			return _interfaces;
 		}
 
+		private void BuildCache()
+		{
+			_cache = new Dictionary<string, List<IEntity>>();
+		}
+
 		public virtual IEnumerable<IEntity> GetMembers()
 		{
-			if (null == _members)
+			if (_members == null)
 			{
 				IEntity[] members = CreateMembers();
 				_members = members;
+				BuildCache();
 			}
 			return _members;
 		}
 
 		protected virtual IEntity[] CreateMembers()
 		{
-			List<IEntity> result = new List<IEntity>();
-			foreach (MemberInfo member in DeclaredMembers())
+			var result = new List<IEntity>();
+			foreach (var member in DeclaredMembers())
 				result.Add(_provider.Map(member));
 			return result.ToArray();
 		}
@@ -274,9 +295,48 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 			get { return null; }
 		}
 
-		public virtual bool Resolve(ICollection<IEntity> resultingSet, string name, EntityType typesToConsider)
+		private bool CachedResolve(string name, EntityType typesToConsider, ICollection<IEntity> resultingSet) 
 		{
-			bool found = My<NameResolutionService>.Instance.Resolve(name, GetMembers(), typesToConsider, resultingSet);
+			if (_cache == null)
+			{
+				GetMembers();
+			}
+		    if (!_cache.ContainsKey(name))
+		        LoadCache(name);
+			var list = _cache[name];
+            if (list != null)
+            {
+                var result = false;
+                foreach (var entity in list)
+                {
+                    if (Entities.IsFlagSet(typesToConsider, entity.EntityType))
+                    {
+                        result = true;
+                        resultingSet.Add(entity);
+                    }
+                }
+                return result;
+            }
+		    return false;
+		}
+
+	    private void LoadCache(string name)
+	    {
+	        var matches = My<NameResolutionService>.Instance.EntityNameMatcher;
+            var list = new List<IEntity>(); 
+            foreach (var member in _members)
+                if (matches(member, name))
+                    list.Add(member);
+	        if (list.Count == 0)
+	            list = null;
+            _cache.Add(name, list);
+	    }
+
+	    public virtual bool Resolve(ICollection<IEntity> resultingSet, string name, EntityType typesToConsider)
+		{
+			bool found = CachedResolve(name, typesToConsider, resultingSet);
+			
+			//bool found = My<NameResolutionService>.Instance.Resolve(name, GetMembers(), typesToConsider, resultingSet);
 
 			if (IsInterface)
 			{
@@ -297,7 +357,7 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 			return found;
 		}
 
-		override public string ToString()
+        public override string ToString()
 		{
 			return this.DisplayName();
 		}
@@ -356,7 +416,7 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 			return TypeUtilities.GetFullName(_type);
 		}
 
-		ExternalGenericTypeInfo _genericTypeDefinitionInfo = null;
+		ExternalGenericTypeInfo _genericTypeDefinitionInfo;
 		public virtual IGenericTypeInfo GenericInfo
 		{
 			get
@@ -367,7 +427,7 @@ namespace Boo.Lang.Compiler.TypeSystem.Reflection
 			}
 		}
 
-		ExternalConstructedTypeInfo _genericTypeInfo = null;
+		ExternalConstructedTypeInfo _genericTypeInfo;
 		public virtual IConstructedTypeInfo ConstructedInfo
 		{
 			get

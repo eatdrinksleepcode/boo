@@ -204,7 +204,7 @@ abstract
 	{
 		++_inQuery;
 	}
-	
+
 	private void LeaveQuery()
 	{
 		--_inQuery;
@@ -217,7 +217,7 @@ abstract
 			return _inQuery > 0;
 		}
 	}
-	
+
 	protected void ResetMemberData()
 	{
 		_modifiers = TypeMemberModifiers.None;
@@ -797,7 +797,7 @@ _loop23_breakloop:				;
 		IToken  s = null;
 		IToken  g = null;
 		IToken  b = null;
-		
+
 			name = null;
 		
 		
@@ -2176,6 +2176,7 @@ _loop200_breakloop:				;
 				case PROTECTED:
 				case REF:
 				case SET:
+				case YIELD:
 				case THEN:
 				case LET:
 				case WHERE:
@@ -2217,6 +2218,7 @@ _loop200_breakloop:				;
 								case PROTECTED:
 								case REF:
 								case SET:
+								case YIELD:
 								case THEN:
 								case LET:
 								case WHERE:
@@ -2419,7 +2421,7 @@ _loop200_breakloop:				;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		IToken  begin = null;
 		
 				TypeDefinition td = null;
@@ -2428,7 +2430,7 @@ _loop200_breakloop:				;
 				GenericParameterDeclarationCollection genericParameters = null;
 				Expression nameSplice = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			{
@@ -2755,7 +2757,7 @@ _loop76_breakloop:							;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		IToken  begin = null;
 		
 				InterfaceDefinition itf = null;
@@ -2763,7 +2765,7 @@ _loop76_breakloop:							;
 				GenericParameterDeclarationCollection genericParameters = null;
 				Expression nameSplice = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			match(INTERFACE);
@@ -3004,12 +3006,12 @@ _loop90_breakloop:						;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		
 				EnumDefinition ed = null;
 				TypeMemberCollection members = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			match(ENUM);
@@ -3124,13 +3126,13 @@ _loop48_breakloop:						;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		
 				CallableDefinition cd = null;
 				TypeReference returnType = null;
 				GenericParameterDeclarationCollection genericParameters = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			match(CALLABLE);
@@ -3706,12 +3708,12 @@ _loop264_breakloop:				;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 			
 				EnumMember em = null;
 				Expression initializer = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			attributes();
@@ -4438,7 +4440,7 @@ _loop94_breakloop:						;
 				Event e = null;
 				TypeReference tr = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			t = LT(1);
@@ -4476,7 +4478,7 @@ _loop94_breakloop:						;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		IToken  begin1 = null;
 		IToken  s = null;
 		IToken  lparen = null;
@@ -4881,6 +4883,7 @@ _loop164_breakloop:								;
 				case PROTECTED:
 				case REF:
 				case SET:
+				case YIELD:
 				case THEN:
 				case LET:
 				case WHERE:
@@ -5098,7 +5101,7 @@ _loop164_breakloop:								;
 		TypeMemberCollection container
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		IToken  s = null;
 		
 				IToken id = null;
@@ -5275,7 +5278,7 @@ _loop114_breakloop:				;
 	protected IToken  member() //throws RecognitionException, TokenStreamException
 {
 		IToken name;
-		
+
 		IToken  set = null;
 		IToken  get = null;
 		IToken  t1 = null;
@@ -5283,10 +5286,11 @@ _loop114_breakloop:				;
 		IToken  t3 = null;
 		IToken  ev = null;
 		IToken  r = null;
-		
+		IToken  y = null;
+
 				name = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			switch ( LA(1) )
@@ -5383,6 +5387,16 @@ _loop114_breakloop:				;
 				}
 				break;
 			}
+			case YIELD:
+			{
+				y = LT(1);
+				match(YIELD);
+				if (0==inputState.guessing)
+				{
+					name=y;
+				}
+				break;
+			}
 			default:
 			{
 				throw new NoViableAltException(LT(1), getFilename());
@@ -5408,11 +5422,11 @@ _loop114_breakloop:				;
 		GenericParameterDeclarationCollection c
 	) //throws RecognitionException, TokenStreamException
 {
-		
+
 		
 				GenericParameterDeclaration gpd = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			id=macro_name();
@@ -5588,7 +5602,7 @@ _loop114_breakloop:				;
 {
 		ExplicitMemberInfo emi;
 		
-		
+
 				emi = null; _sbuilder.Length = 0;
 				IToken id = null;
 				IToken id2 = null;
@@ -6577,6 +6591,7 @@ _loop614_breakloop:										;
 								case PROTECTED:
 								case REF:
 								case SET:
+								case YIELD:
 								case THEN:
 								case LET:
 								case WHERE:
@@ -8166,7 +8181,7 @@ _loop429_breakloop:										;
 	) //throws RecognitionException, TokenStreamException
 {
 		bool variableArguments;
-		
+
 		IToken  begin1 = null;
 		IToken  begin2 = null;
 				
@@ -9944,7 +9959,7 @@ _loop289_breakloop:						;
 		
 				stmt = null;
 				IToken label = null;
-			
+
 		
 		try {      // for error handling
 			token = LT(1);
@@ -9981,7 +9996,7 @@ _loop289_breakloop:						;
 		
 				stmt = null;
 				IToken label = null;
-			
+
 		
 		try {      // for error handling
 			token = LT(1);
@@ -10020,7 +10035,7 @@ _loop289_breakloop:						;
 			Block body = null;
 			TypeReference rt = null;
 			IToken id = null;
-		
+
 		
 		try {      // for error handling
 			def = LT(1);
@@ -11283,12 +11298,12 @@ _loop368_breakloop:				;
 	protected Declaration  declaration() //throws RecognitionException, TokenStreamException
 {
 		Declaration d;
-		
+
 		
 				d = null;
 				TypeReference tr = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			id=macro_name();
@@ -11395,14 +11410,14 @@ _loop368_breakloop:				;
 	protected DeclarationStatement  declaration_stmt() //throws RecognitionException, TokenStreamException
 {
 		DeclarationStatement s;
-		
+
 		
 				s = null;
 				TypeReference tr = null;
 				Expression initializer = null;
 				StatementModifier m = null;
 				IToken id = null;
-			
+
 		
 		try {      // for error handling
 			id=macro_name();
@@ -12689,7 +12704,7 @@ _loop353_breakloop:					;
 				TypeReference tr = null;
 				Expression e = null;
 				IToken x = null;
-			
+
 		
 		try {      // for error handling
 			c = LT(1);
@@ -12993,7 +13008,7 @@ _loop353_breakloop:					;
 				{
 					throw new NoViableAltException(LT(1), getFilename());
 				}
-				
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -14720,32 +14735,32 @@ _loop540_breakloop:				;
 		}
 		return e;
 	}
-	
+
 	protected QueryExpression  query_expression() //throws RecognitionException, TokenStreamException
 {
 		QueryExpression e;
-		
-		
+
+
 			e = null;
 			FromClauseExpression f = null;
 			EnterQuery();
-		
-		
+
+
 		try {      // for error handling
 			f=from_clause();
 			if (0==inputState.guessing)
 			{
-				
+
 						e = new QueryExpression(f.LexicalInfo);
 						e.Clauses.Add(f);
-					
+
 			}
 			query_body(e);
 			if (0==inputState.guessing)
 			{
-				
+
 						LeaveQuery();
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15390,14 +15405,14 @@ _loop595_breakloop:							;
 	protected FromClauseExpression  from_clause() //throws RecognitionException, TokenStreamException
 {
 		FromClauseExpression f;
-		
+
 		IToken  fr = null;
-		
+
 			f = null;
 			Declaration ident = null;
 			Expression enumerable = null;
-		
-		
+
+
 		try {      // for error handling
 			fr = LT(1);
 			match(FROM);
@@ -15406,12 +15421,12 @@ _loop595_breakloop:							;
 			enumerable=expression();
 			if (0==inputState.guessing)
 			{
-				
+
 						f = new FromClauseExpression(ToLexicalInfo(fr));
 						f.Identifier = ident;
 						f.Container = enumerable;
 						f.DeclaredType = (ident.Type != null);
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15428,18 +15443,18 @@ _loop595_breakloop:							;
 		}
 		return f;
 	}
-	
+
 	protected void query_body(
 		QueryExpression q
 	) //throws RecognitionException, TokenStreamException
 {
-		
-		
+
+
 			var clauses = q.Clauses;
 			QueryEndingExpression e = null;
 			QueryContinuationExpression c = null;
-		
-		
+
+
 		try {      // for error handling
 			query_body_clause(clauses);
 			{
@@ -15472,14 +15487,14 @@ _loop595_breakloop:							;
 				{
 					throw new NoViableAltException(LT(1), getFilename());
 				}
-				
+
 			}
 			if (0==inputState.guessing)
 			{
-				
+
 						q.Ending = e;
 						q.Cont = c;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15495,16 +15510,16 @@ _loop595_breakloop:							;
 			}
 		}
 	}
-	
+
 	protected void query_body_clause(
 		ExpressionCollection c
 	) //throws RecognitionException, TokenStreamException
 {
-		
-		
+
+
 			QueryClauseExpression next = null;
-		
-		
+
+
 		try {      // for error handling
 			{    // ( ... )*
 				for (;;)
@@ -15547,16 +15562,16 @@ _loop595_breakloop:							;
 						}
 						if (0==inputState.guessing)
 						{
-							
+
 										c.Add(next);
-									
+
 						}
 					}
 					else
 					{
 						goto _loop576_breakloop;
 					}
-					
+
 				}
 _loop576_breakloop:				;
 			}    // ( ... )*
@@ -15574,27 +15589,27 @@ _loop576_breakloop:				;
 			}
 		}
 	}
-	
+
 	protected SelectClauseExpression  select_clause() //throws RecognitionException, TokenStreamException
 {
 		SelectClauseExpression s;
-		
+
 		IToken  sel = null;
-		
+
 			s = null;
 			Expression baseExpr = null;
-		
-		
+
+
 		try {      // for error handling
 			sel = LT(1);
 			match(SELECT);
 			baseExpr=expression();
 			if (0==inputState.guessing)
 			{
-				
+
 						s = new SelectClauseExpression(ToLexicalInfo(sel));
 						s.BaseExpr = baseExpr;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15611,18 +15626,18 @@ _loop576_breakloop:				;
 		}
 		return s;
 	}
-	
+
 	protected GroupClauseExpression  group_clause() //throws RecognitionException, TokenStreamException
 {
 		GroupClauseExpression g;
-		
+
 		IToken  gr = null;
-		
+
 			g = null;
 			Expression baseExpr = null;
 			Expression criterion = null;
-		
-		
+
+
 		try {      // for error handling
 			gr = LT(1);
 			match(GROUP);
@@ -15631,11 +15646,11 @@ _loop576_breakloop:				;
 			criterion=expression();
 			if (0==inputState.guessing)
 			{
-				
+
 						g = new GroupClauseExpression(ToLexicalInfo(gr));
 						g.BaseExpr = baseExpr;
 						g.Criterion = criterion;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15652,29 +15667,29 @@ _loop576_breakloop:				;
 		}
 		return g;
 	}
-	
+
 	protected QueryContinuationExpression  query_continuation() //throws RecognitionException, TokenStreamException
 {
 		QueryContinuationExpression q;
-		
+
 		IToken  qb = null;
-		
+
 			q = null;
 			QueryExpression body = null;
 			IToken id = null;
-		
-		
+
+
 		try {      // for error handling
 			qb = LT(1);
 			match(INTO);
 			id=macro_name();
 			if (0==inputState.guessing)
 			{
-				
+
 						q = new QueryContinuationExpression(ToLexicalInfo(qb));
 						q.Ident = id.getText();
 						q.Body = new QueryExpression();
-					
+
 			}
 			query_body(q.Body);
 		}
@@ -15692,18 +15707,18 @@ _loop576_breakloop:				;
 		}
 		return q;
 	}
-	
+
 	protected LetClauseExpression  let_clause() //throws RecognitionException, TokenStreamException
 {
 		LetClauseExpression l;
-		
+
 		IToken  le = null;
-		
+
 			l = null;
 			Expression expr = null;
 			IToken ident = null;
-		
-		
+
+
 		try {      // for error handling
 			le = LT(1);
 			match(LET);
@@ -15712,11 +15727,11 @@ _loop576_breakloop:				;
 			expr=expression();
 			if (0==inputState.guessing)
 			{
-				
+
 						l = new LetClauseExpression(ToLexicalInfo(le));
 						l.Identifier = ident.getText();
 						l.Value = expr;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15733,27 +15748,27 @@ _loop576_breakloop:				;
 		}
 		return l;
 	}
-	
+
 	protected WhereClauseExpression  where_clause() //throws RecognitionException, TokenStreamException
 {
 		WhereClauseExpression w;
-		
+
 		IToken  wh = null;
-		
+
 			w = null;
 			Expression where = null;
-		
-		
+
+
 		try {      // for error handling
 			wh = LT(1);
 			match(WHERE);
 			where=boolean_expression();
 			if (0==inputState.guessing)
 			{
-				
+
 						w = new WhereClauseExpression(ToLexicalInfo(wh));
 						w.Cond = where;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15770,21 +15785,21 @@ _loop576_breakloop:				;
 		}
 		return w;
 	}
-	
+
 	protected JoinClauseExpression  join_clause() //throws RecognitionException, TokenStreamException
 {
 		JoinClauseExpression j;
-		
+
 		IToken  jo = null;
-		
+
 			j = null;
 			Declaration ident = null;
 			Expression enumerable = null;
 			Expression onExprL = null;
 			Expression onExprR = null;
 			ReferenceExpression intoExpr = null;
-		
-		
+
+
 		try {      // for error handling
 			jo = LT(1);
 			match(JOIN);
@@ -15822,7 +15837,7 @@ _loop576_breakloop:				;
 			}
 			if (0==inputState.guessing)
 			{
-				
+
 						j = new JoinClauseExpression(ToLexicalInfo(jo));
 						j.Identifier = ident;
 						j.Container = enumerable;
@@ -15830,7 +15845,7 @@ _loop576_breakloop:				;
 						j.Left = onExprL;
 						j.Right = onExprR;
 						j.Into = intoExpr;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15847,27 +15862,27 @@ _loop576_breakloop:				;
 		}
 		return j;
 	}
-	
+
 	protected OrderByClauseExpression  orderby_clause() //throws RecognitionException, TokenStreamException
 {
 		OrderByClauseExpression o;
-		
+
 		IToken  ob = null;
-		
+
 			o = null;
 			OrderingExpressionCollection ord = null;
-		
-		
+
+
 		try {      // for error handling
 			ob = LT(1);
 			match(ORDERBY);
 			ord=orderings();
 			if (0==inputState.guessing)
 			{
-				
+
 						o = new OrderByClauseExpression(ToLexicalInfo(ob));
 						o.Orderings = ord;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -15884,24 +15899,24 @@ _loop576_breakloop:				;
 		}
 		return o;
 	}
-	
+
 	protected OrderingExpressionCollection  orderings() //throws RecognitionException, TokenStreamException
 {
 		OrderingExpressionCollection l;
-		
-		
+
+
 			l = null;
 			OrderingExpression oe = null;
-		
-		
+
+
 		try {      // for error handling
 			oe=ordering();
 			if (0==inputState.guessing)
 			{
-				
+
 						l = new OrderingExpressionCollection();
 						l.Add(oe);
-					
+
 			}
 			{    // ( ... )*
 				for (;;)
@@ -15919,7 +15934,7 @@ _loop576_breakloop:				;
 					{
 						goto _loop584_breakloop;
 					}
-					
+
 				}
 _loop584_breakloop:				;
 			}    // ( ... )*
@@ -15938,17 +15953,17 @@ _loop584_breakloop:				;
 		}
 		return l;
 	}
-	
+
 	protected OrderingExpression  ordering() //throws RecognitionException, TokenStreamException
 {
 		OrderingExpression o;
-		
-		
+
+
 			o = null;
 			Expression baseExpr = null;
 			bool desc = false;
-		
-		
+
+
 		try {      // for error handling
 			baseExpr=expression();
 			{
@@ -15989,11 +16004,11 @@ _loop584_breakloop:				;
 			}
 			if (0==inputState.guessing)
 			{
-				
+
 						o = new OrderingExpression(baseExpr.LexicalInfo);
 						o.BaseExpr = baseExpr;
 						o.Descending = desc;
-					
+
 			}
 		}
 		catch (RecognitionException ex)
@@ -16010,7 +16025,7 @@ _loop584_breakloop:				;
 		}
 		return o;
 	}
-	
+
 	protected void slice(
 		SlicingExpression se
 	) //throws RecognitionException, TokenStreamException
@@ -17396,7 +17411,7 @@ _loop657_breakloop:							;
 			Expression param = null;
 			LexicalInfo info = null;
 			IToken formatString = null;
-		
+
 		
 		try {      // for error handling
 			{

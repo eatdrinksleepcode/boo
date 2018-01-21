@@ -89,8 +89,33 @@ namespace Boo.Lang.Compiler.TypeSystem.Internal
 				_baseTypes = baseTypes.ToArray();
 			}
 			
-			return _baseTypes;			
+			return _baseTypes;
 		}
+		
+		public override bool IsAssignableFrom(IType other)
+		{
+			if (base.IsAssignableFrom(other))
+				return true;
+			
+			var otherInternal = other as InternalGenericParameter;
+			if (otherInternal == null)
+				return false;
+			
+			var selfNode = this.Node;
+			var otherNode = otherInternal.Node;
+            return CheckGenericInheritance(otherNode, selfNode) || CheckGenericInheritance(selfNode, otherNode);
+		}
+
+	    private static bool CheckGenericInheritance(Node thisNode, Node parentNode)
+	    {
+            while (thisNode != null && thisNode.ContainsAnnotation("InternalGenericParent"))
+            {
+                thisNode = (Node)thisNode["InternalGenericParent"];
+                if (thisNode == parentNode)
+                    return true;
+            }
+	        return false;
+	    }
 
 		public override IEntity DeclaringEntity
 		{

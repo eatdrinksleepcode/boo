@@ -370,6 +370,8 @@ namespace Boo.Lang.Compiler.Ast.Visitors
 							return false;
 						case NodeType.ForStatement:
 							return false;
+						case NodeType.TryStatement:
+							return false;
 					}
 					return true;
 
@@ -1324,6 +1326,14 @@ namespace Boo.Lang.Compiler.Ast.Visitors
 			WriteLine();
 		}
 
+	    override public void OnAwaitExpression(AwaitExpression value)
+	    {
+	        Write("await ( ");
+            base.OnAwaitExpression(value);
+            Write(")");
+	    }
+
+		#endregion
       override public void OnFromClauseExpression(FromClauseExpression node)
       {
 			WriteKeyword("from ");
@@ -1332,7 +1342,7 @@ namespace Boo.Lang.Compiler.Ast.Visitors
 			Visit(node.Container);
 			Write(" ");
       }
-      
+
       override public void OnQueryContinuationExpression(QueryContinuationExpression node)
       {
 			WriteKeyword("into ");
@@ -1341,30 +1351,30 @@ namespace Boo.Lang.Compiler.Ast.Visitors
 			WriteIndented();
 			Visit(node.Body);
       }
-      
+
       override public void OnSelectClauseExpression(SelectClauseExpression node)
       {
 			WriteKeyword("select ");
 			Visit(node.BaseExpr);
 			Write(" ");
       }
-      
+
       override public void OnLetClauseExpression(LetClauseExpression node)
       {
 			WriteKeyword("let ");
 			Write(node.Identifier);
 			Write(" = ");
 			Visit(node.Value);
-			Write(" ");         
+			Write(" ");
       }
-      
+
       override public void OnWhereClauseExpression(WhereClauseExpression node)
       {
 			WriteKeyword("where ");
 			Visit(node.Cond);
-			Write(" ");                  
+			Write(" ");
       }
-      
+
       override public void OnJoinClauseExpression(JoinClauseExpression node)
       {
 			WriteKeyword("join ");
@@ -1382,7 +1392,7 @@ namespace Boo.Lang.Compiler.Ast.Visitors
 			}
 			Write(" ");
       }
-      
+
       override public void OnGroupClauseExpression(GroupClauseExpression node)
       {
          WriteKeyword("group ");
@@ -1391,7 +1401,7 @@ namespace Boo.Lang.Compiler.Ast.Visitors
          Visit(node.Criterion);
          Write(" ");
       }
-      
+
       override public void OnOrderByClauseExpression(OrderByClauseExpression node)
       {
          WriteKeyword("orderby ");
@@ -1404,23 +1414,23 @@ namespace Boo.Lang.Compiler.Ast.Visitors
          }
          Write(" ");
       }
-      
+
       override public void OnOrderingExpression(OrderingExpression node)
       {
          Visit(node.BaseExpr);
          if (node.Descending)
             Write(" descending");
       }
-      
+
       override public void OnQueryExpression(QueryExpression node)
       {
          WriteIndented();
          base.OnQueryExpression(node);
-         WriteLine();         
+         WriteLine();
       }
-         
+
    #endregion
-		
+
 		public static string GetUnaryOperatorText(UnaryOperatorType op)
 		{
 			switch (op)

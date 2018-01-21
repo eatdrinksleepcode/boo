@@ -52,6 +52,7 @@ using Module = Boo.Lang.Compiler.Ast.Module;
 using System.Collections.Generic;
 using Method = Boo.Lang.Compiler.Ast.Method;
 using ExceptionHandler = Boo.Lang.Compiler.Ast.ExceptionHandler;
+using Boo.Lang.Compiler.Resources;
 
 namespace Boo.Lang.Compiler.Steps
 {
@@ -144,6 +145,7 @@ namespace Boo.Lang.Compiler.Steps
 		bool _perModuleRawArrayIndexing = false;
 
 		Dictionary<IType, Type> _typeCache = new Dictionary<IType, Type>();
+		List<Method> _moduleConstructorMethods = new List<Method>();
 
 		// keeps track of types on the IL stack
 		readonly Stack<IType> _types = new Stack<IType>();
@@ -208,9 +210,48 @@ namespace Boo.Lang.Compiler.Steps
 			DefineResources();
 			DefineAssemblyAttributes();
 			DefineEntryPoint();
+			DefineModuleConstructor();
+
+            // Define the unmanaged information resources, which 
+            // contains the attribute informaion applied earlier,
+            // plus icon data if applicable
+            DefineUnmanagedResource();
 
 			_moduleBuilder.CreateGlobalFunctions(); //setup global .data
 		}
+
+        private Stream GetIconFile(string filename)
+        {
+            if (!Path.IsPathRooted(filename))
+            {
+                filename = Path.GetFullPath(filename);
+            }
+            try
+            {
+                return File.Open(filename, FileMode.Open);
+            }
+            catch (FileNotFoundException)
+            {
+                Context.Warnings.Add(CompilerWarningFactory.IconNotFound(filename));
+                return null;
+            }
+        }
+
+        private void DefineUnmanagedResource()
+        {
+            // always pass true for noManifest and a null manifest stream for now.  This can be updated
+            // later if we add support for manifests to Boo
+            var filename = BuildOutputAssemblyName();
+            var isExe = filename.EndsWith(".exe");
+            var iconName = Context.Parameters.Icon;
+            var iconStream = iconName != null ? GetIconFile(iconName) : null;
+            var resourceBytes = UnamangedResourceHelper.CreateDefaultWin32Resources(
+                true, isExe, null, iconStream, _asmBuilder);
+            var resFilename = Path.GetTempFileName();
+            Context.Properties["ResFileName"] = resFilename;
+            File.WriteAllBytes(resFilename, resourceBytes);
+            _asmBuilder.DefineUnmanagedResource(resFilename);
+        }
 
 		void GatherAssemblyAttributes()
 		{
@@ -229,10 +270,10 @@ namespace Boo.Lang.Compiler.Steps
 				DefineType(type);
 
 			foreach (var type in types)
-			{
 				DefineGenericParameters(type);
-				DefineTypeMembers(type);
-			}
+
+            foreach (var type in types)
+                DefineTypeMembers(type);
 
 			foreach (var module in CompileUnit.Modules)
 				OnModule(module);
@@ -649,6 +690,10 @@ namespace Boo.Lang.Compiler.Steps
 			DefineExplicitImplementationInfo(method);
 
 			EmitMethod(method, methodBuilder.GetILGenerator());
+			if (method.Name.StartsWith("$module_ctor"))
+			{
+				_moduleConstructorMethods.Add(method);
+			}
 		}
 
 		private void DefineExplicitImplementationInfo(Method method)
@@ -1775,6 +1820,13 @@ namespace Boo.Lang.Compiler.Steps
 
 		private void SetByRefParam(InternalParameter param, Expression right, bool leaveValueOnStack)
 		{
+			if (!leaveValueOnStack && IsGenericDefaultInvocation(right))
+			{
+				LoadParam(param);
+				_il.Emit(OpCodes.Initobj, GetSystemType(((MethodInvocationExpression)right).ExpressionType));
+				return;
+			}
+
 			LocalBuilder temp = null;
 			IType tempType = null;
 			if (leaveValueOnStack)
@@ -1801,6 +1853,16 @@ namespace Boo.Lang.Compiler.Steps
 
 			if (null != temp)
 				LoadLocal(temp, tempType);
+		}
+
+		private static bool IsGenericDefaultInvocation(Expression node)
+		{
+			if (node.NodeType != NodeType.MethodInvocationExpression)
+				return false;
+			var target = ((MethodInvocationExpression)node).Target;
+			if (target.Entity != BuiltinFunction.Default)
+				return false;
+			return node.ExpressionType is InternalGenericParameter;
 		}
 
 		void EmitTypeTest(BinaryExpression node)
@@ -2578,6 +2640,12 @@ namespace Boo.Lang.Compiler.Steps
 						break;
 					}
 
+				case BuiltinFunctionType.Default:
+					{
+						EmitDefaultValue((IType)node.ExpressionType);
+						break;
+					}
+					
 				default:
 					{
 						NotImplemented(node, "BuiltinFunction: " + function.FunctionType);
@@ -4413,6 +4481,20 @@ namespace Boo.Lang.Compiler.Steps
 			}
 		}
 
+		void DefineModuleConstructor()
+		{
+			if (_moduleConstructorMethods.Count == 0)
+				return;
+			
+			var attrs = MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
+			MethodBuilder mb = this._moduleBuilder.DefineGlobalMethod(".cctor", attrs, null, new Type[]{});
+			Method m = CodeBuilder.CreateMethod(".cctor", TypeSystemServices.VoidType, TypeMemberModifiers.Static);
+			foreach (var reference in _moduleConstructorMethods.OrderBy(reference => (int)reference["Ordering"]))
+				m.Body.Add(CodeBuilder.CreateMethodInvocation((IMethod)reference.Entity));
+			
+			EmitMethod(m, mb.GetILGenerator());
+		}
+
 		Type[] GetParameterTypes(ParameterDeclarationCollection parameters)
 		{
 			Type[] types = new Type[parameters.Count];
@@ -4672,6 +4754,20 @@ namespace Boo.Lang.Compiler.Steps
 				return type;
 			}
 
+			if (entity is IGenericMappedType)
+				return GetMappedSystemType((IGenericMappedType)entity);
+
+			if (entity is TypeSystem.Core.AnonymousCallableType)
+				return SystemTypeFrom(((TypeSystem.Core.AnonymousCallableType)entity).ConcreteType);
+
+			return null;
+		}
+
+		private Type GetMappedSystemType(IGenericMappedType entity)
+		{
+			var containingType = SystemTypeFrom((IType)entity.DeclaringEntity);
+			var sourceType = SystemTypeFrom(entity.SourceType);
+			NotImplemented("GetMappedSystemType");
 			return null;
 		}
 
@@ -5136,14 +5232,30 @@ namespace Boo.Lang.Compiler.Steps
 
 			if (null == enclosingType)
 			{
-				typeBuilder = _moduleBuilder.DefineType(
+				if (((IType)type.Entity).IsValueType && !((IType)type.Entity).IsEnum && !((IType)type.Entity).GetMembers().OfType<Field>().Any())
+				{
+					typeBuilder = _moduleBuilder.DefineType(
+										AnnotateGenericTypeName(type, type.QualifiedName),
+										GetTypeAttributes(type),
+										baseType,
+										1);					
+				}
+				else typeBuilder = _moduleBuilder.DefineType(
 					AnnotateGenericTypeName(type, type.QualifiedName),
 					GetTypeAttributes(type),
 					baseType);
 			}
 			else
 			{
-				typeBuilder = GetTypeBuilder(enclosingType).DefineNestedType(
+				if (((IType)type.Entity).IsValueType && !((IType)type.Entity).IsEnum && !((IType)type.Entity).GetMembers().OfType<Field>().Any())
+				{
+					typeBuilder = GetTypeBuilder(enclosingType).DefineNestedType(
+										AnnotateGenericTypeName(type, type.Name),
+										GetNestedTypeAttributes(type),
+										baseType,
+										1);					
+				}
+				else typeBuilder = GetTypeBuilder(enclosingType).DefineNestedType(
 					AnnotateGenericTypeName(type, type.Name),
 					GetNestedTypeAttributes(type),
 					baseType);
@@ -5295,8 +5407,9 @@ namespace Boo.Lang.Compiler.Steps
 					return ((BoolLiteralExpression)expression).Value;
 
 				case NodeType.IntegerLiteralExpression:
+					var ile = (IntegerLiteralExpression)expression;
 					return ConvertValue(expectedType,
-											((IntegerLiteralExpression)expression).Value);
+					                    ile.IsLong? ile.Value: (int)ile.Value);
 
 				case NodeType.DoubleLiteralExpression:
 					return ConvertValue(expectedType,
@@ -5516,7 +5629,21 @@ namespace Boo.Lang.Compiler.Steps
 
 		AssemblyBuilderAccess GetAssemblyBuilderAccess()
 		{
-			return Parameters.GenerateInMemory ? AssemblyBuilderAccess.RunAndSave : AssemblyBuilderAccess.Save;
+			if (Parameters.GenerateCollectible)
+			{
+#if !NET_40_OR_GREATER
+				
+				Context.Warnings.Add(CompilerWarningFactory.CustomWarning("Collectible Assemblies are available only on .NET Framework 4.0 or later (https://msdn.microsoft.com/en-us/library/dd554932(v=vs.100).aspx)"));
+				return Parameters.GenerateInMemory ? AssemblyBuilderAccess.RunAndSave : AssemblyBuilderAccess.Save;
+#else
+				return Parameters.GenerateInMemory ? AssemblyBuilderAccess.RunAndCollect : AssemblyBuilderAccess.Save;
+#endif
+			}
+			else
+			{
+				return Parameters.GenerateInMemory ? AssemblyBuilderAccess.RunAndSave : AssemblyBuilderAccess.Save;
+			}
+
 		}
 
 		AssemblyName CreateAssemblyName(string outputFile)
