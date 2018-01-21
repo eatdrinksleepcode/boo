@@ -1333,7 +1333,6 @@ namespace Boo.Lang.Compiler.Ast.Visitors
             Write(")");
 	    }
 
-		#endregion
       override public void OnFromClauseExpression(FromClauseExpression node)
       {
 			WriteKeyword("from ");

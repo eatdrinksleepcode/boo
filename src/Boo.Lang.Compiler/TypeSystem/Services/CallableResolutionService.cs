@@ -571,13 +571,18 @@ namespace Boo.Lang.Compiler.TypeSystem
 
 			if (MyDowncastPermissions().CanBeReachedByDowncast(parameterType, argumentType))
 				return DowncastScore;
-			
-			if (argumentType is AnonymousCallableType && parameterType is ExternalType &&
-				((ExternalType)parameterType).BaseType.FullName == "System.Linq.Expressions.LambdaExpression" &&
+
+			if (argumentType is AnonymousCallableType && IsLambdaExpression(parameterType) &&
 				IsLambdaAssignableToExpressionTree((ExternalType)parameterType, (AnonymousCallableType)argumentType))
 				return UpCastScore;
 
 			return -1;
+		}
+
+		private bool IsLambdaExpression(IType type)
+		{
+			var externalType = type as ExternalType;
+			return externalType?.BaseType != null && externalType.BaseType.FullName == "System.Linq.Expressions.LambdaExpression";
 		}
 		
 		private bool IsLambdaAssignableToExpressionTree(ExternalType paramType, AnonymousCallableType argumentType)

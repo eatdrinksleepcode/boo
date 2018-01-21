@@ -77,6 +77,7 @@ namespace Boo.Lang.Compiler.Ast
 			var other = ( AsyncBlockExpression)node;
 			if (!Node.AllMatch(_parameters, other._parameters)) return NoMatch("AsyncBlockExpression._parameters");
 			if (!Node.Matches(_returnType, other._returnType)) return NoMatch("AsyncBlockExpression._returnType");
+			if (_isExpressionTree != other._isExpressionTree) return NoMatch("AsyncBlockExpression._isExpressionTree");
 			if (!Node.Matches(_body, other._body)) return NoMatch("AsyncBlockExpression._body");
 			if (!Node.Matches(_block, other._block)) return NoMatch("AsyncBlockExpression._block");
 			return true;
@@ -141,6 +142,7 @@ namespace Boo.Lang.Compiler.Ast
 				clone._returnType = _returnType.Clone() as TypeReference;
 				clone._returnType.InitializeParent(clone);
 			}
+			clone._isExpressionTree = _isExpressionTree;
 			if (null != _body)
 			{
 				clone._body = _body.Clone() as Block;
