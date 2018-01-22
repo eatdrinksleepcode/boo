@@ -112,7 +112,7 @@ def Main(argv as (string)):
 	{
 		using NUnit.Framework;
 
-		[TestFixture]
+		[TestFixture][Category("FailsOnMono4")]
 		public class AsyncTestFixture : AbstractCompilerTestCase
 		{
 	""")
